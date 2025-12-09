@@ -1,4 +1,0 @@
-flask
-gunicorn
-prometheus-flask-exporter
-mysql-connector-python

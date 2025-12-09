@@ -1,20 +1,18 @@
-FROM mattiashem/python:3.7
+FROM python:3.13.11-alpine3.23
 
-#copy code
-COPY code/* /app/code/
-WORKDIR /app/code
+WORKDIR /app
 
-#Install deps
+# copy code
+COPY src/ /app/
+
+
+# #Install deps
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install pipenv
+RUN pipenv install
 
 
-#base
-RUN apt update && apt-get install -y curl openssh-server 
-#deps 
-RUN apt update && apt-get install -y default-jre
-
-EXPOSE 80
+EXPOSE 8080
 
 # Start server
-ENTRYPOINT [ "./entrypoint.sh" ] 
+ENTRYPOINT [ "./entrypoint.sh" ]

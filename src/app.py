@@ -10,7 +10,9 @@ a_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 app = Flask(__name__)
 metrics = PrometheusMetrics(app)
 
-ID = os.environ['ID']
+# Looks like this variable is not used.
+# ID = os.environ['ID']
+
 
 
 import mysql.connector

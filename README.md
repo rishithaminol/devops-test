@@ -43,3 +43,7 @@ The repository also contains a CI/CD tool. You must **update the CI/CD pipeline*
 - Docker
 - Helm
 - k8s cluster (minikube will work)
+
+
+* I'm not recommending using a MySQL instance on Kubernetes engine. So the MySQL service will be served as a separate service.
+* Added `pipenv` mechanism to install Python packages.
