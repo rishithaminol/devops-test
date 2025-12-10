@@ -44,6 +44,16 @@ The repository also contains a CI/CD tool. You must **update the CI/CD pipeline*
 - Helm
 - k8s cluster (minikube will work)
 
+# Final Description
 
 * I'm not recommending using a MySQL instance on Kubernetes engine. So the MySQL service will be served as a separate service.
 * Added `pipenv` mechanism to install Python packages.
+
+# Helm development
+
+    helm upgrade --install devops-test ./helm -n devops-test --create-namespace \
+        --set mySQLDatabase.host=my-db \
+        --set mySQLDatabase.port=3306 \
+        --set mySQLDatabase.user=my-user \
+        --set mySQLDatabase.password=my-password \
+        --set mySQLDatabase.db=targets
