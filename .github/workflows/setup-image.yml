@@ -4,28 +4,52 @@ on:
   push:
     branches:
       - master
+    # paths:
+    #   - 'src/**'
+    #   - 'Dockerfile'
+
   pull_request:
     branches:
       - master
 
 jobs:
-  build-and-test:
+  build-image:
     runs-on: self-hosted
+    outputs:
+      image_tag_ts: ${{ steps.img_build.outputs.IMAGE_TAG_TS }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run tests
-        run: ls -l .
+      - name: Generate randomization for image tag
+        id: img_build
+        run: |
+          echo "IMAGE_TAG_TS=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+          echo "IMAGE_TAG_TS=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
-  # deploy:
-  #   needs: build-and-test # This job depends on the 'build-and-test' job
-  #   runs-on: ubuntu-latest
-  #   if: github.ref == 'refs/heads/main' # Only deploy on pushes to main branch
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+      - name: Build docker image
+        run: |
+          docker build --no-cache -t "devops-test:$IMAGE_TAG_TS" .
 
-  #     - name: Deploy to production
-  #       run: echo "Deploying to production..."
-  #       # Add your deployment commands here (e.g., using a specific deployment action)
+  deploy:
+    needs: build-image
+    runs-on: self-hosted
+    steps:
+      - name: Check incoming output
+        run: |
+          ls -l .
+          echo "Incoming image tag: ${{needs.build-image.outputs.image_tag_ts}}"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_HUB_USER }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+      - name: Push images to the registry
+        run: |
+          docker tag "devops-test:${{needs.build-image.outputs.image_tag_ts}}" "rminol/devops-test:${{needs.build-image.outputs.image_tag_ts}}"
+          docker tag "devops-test:${{needs.build-image.outputs.image_tag_ts}}" "rminol/devops-test:latest"
+          docker push "rminol/devops-test:${{needs.build-image.outputs.image_tag_ts}}"
+          docker push "rminol/devops-test:latest"
