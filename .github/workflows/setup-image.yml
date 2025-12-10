@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - master
-    # paths:
-    #   - 'src/**'
-    #   - 'Dockerfile'
+    paths:
+      - 'src/**'
+      - 'Dockerfile'
 
   pull_request:
     branches:
