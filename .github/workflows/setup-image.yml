@@ -102,6 +102,6 @@ jobs:
             --set mySQLDatabase.user='${{ secrets.MYSQL_USER }}' \
             --set mySQLDatabase.password='${{ secrets.MYSQL_PASSWORD }}' \
             --set mySQLDatabase.db='${{ secrets.MYSQL_DATABASE }}' \
-            --set image.repository='rminol/devops-test' \
+            --set image.repository='repo.maavee.net1/rminol/devops-test' \
             --set image.pullPolicy='IfNotPresent' \
             --set image.tag='${{ needs.build-image.outputs.image_tag_ts }}'
