@@ -57,3 +57,19 @@ The repository also contains a CI/CD tool. You must **update the CI/CD pipeline*
         --set mySQLDatabase.user=my-user \
         --set mySQLDatabase.password=my-password \
         --set mySQLDatabase.db=targets
+
+# Nginx ingress installation
+
+Nginx ingress package is installed as a separate package. Because it's not advisable to integrate the ingress installation with this CI/CD mechanism. With this, following Helm values `nginx-installation.yaml` file, the ingress will listen on each node's port 80/tcp and 443/tcp. And each node is exposed to the internet via a load balancer.
+
+No Network level forwarding load balancer to the nodes.
+
+
+## Ingress installation procedure.
+
+    helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+    helm repo update
+
+    helm install ingress-nginx ingress-nginx/ingress-nginx --version '4.14.1' \
+      --namespace ingress-nginx --create-namespace \
+      -f docs/nginx-installation.yaml

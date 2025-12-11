@@ -37,3 +37,16 @@ mySQLDatabase:
   user: my-user
   password: my-password
   db: targets
+
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: devops-test.rishithaminol.com
+      paths:
+        - path: /
+          pathType: Prefix

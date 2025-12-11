@@ -1,0 +1,24 @@
+controller:
+  # run the controller on the host network so it directly listens on node IPs
+  hostNetwork: true
+
+  kind: DaemonSet
+
+  # don’t create a LoadBalancer/NodePort service that interferes with host network
+  service:
+    enabled: false
+
+  # preserve client source IP if you run NodePort/LoadBalancer; with hostNetwork it's still useful
+  config:
+    use-proxy-protocol: "false"
+
+  # optional: set the health port and the health path the LB will probe
+  health:
+    enabled: true
+    path: /healthz
+    port: 10254
+    # note: some charts use controller.healthzPort; if so set that instead
+
+  # RBAC, affinity and tolerations are left default; consider adding nodeAffinity/tolerations for scheduling
+  metrics:
+    enabled: false
