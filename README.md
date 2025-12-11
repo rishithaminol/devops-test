@@ -60,9 +60,9 @@ The repository also contains a CI/CD tool. You must **update the CI/CD pipeline*
 
 # Nginx ingress installation
 
-Nginx ingress package is installed as a separate package. Because it's not advisable to integrate the ingress installation with this CI/CD mechanism. With this, following Helm values `nginx-installation.yaml` file, the ingress will listen on each node's port 80/tcp and 443/tcp. And each node is exposed to the internet via a load balancer.
+Nginx ingress package is installed separately since it's not advisable to integrate the ingress installation with this CI/CD mechanism. With Helm values `docs/nginx-installation.yaml` file, the ingress will listen on each node's port 80/tcp and 443/tcp. And each node is exposed to the internet via a load balancer.
 
-No Network level forwarding load balancer to the nodes.
+Load balancer type is normal http based protocol. Communication from load balancer -> nodes happens with http protocol.
 
 
 ## Ingress installation procedure.
