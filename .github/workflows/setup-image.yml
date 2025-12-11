@@ -1,4 +1,4 @@
-name: Build Docker image and push to registry
+name: DevOps Test CI/CD recipe
 
 on:
   push:
@@ -6,11 +6,21 @@ on:
       - master
     paths:
       - 'src/**'
+      - 'helm/**'
       - 'Dockerfile'
 
   pull_request:
     branches:
       - master
+
+  # This configuration is placed only for manual trigger.
+  # Not used environment variable thing
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: string
 
 jobs:
   build-image:
@@ -31,7 +41,7 @@ jobs:
         run: |
           docker build --no-cache -t "devops-test:$IMAGE_TAG_TS" .
 
-  deploy:
+  docker-deploy:
     needs: build-image
     runs-on: self-hosted
     steps:
@@ -47,9 +57,51 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
-      - name: Push images to the registry
+      - name: Push Docker image to the registry
         run: |
           docker tag "devops-test:${{needs.build-image.outputs.image_tag_ts}}" "rminol/devops-test:${{needs.build-image.outputs.image_tag_ts}}"
           docker tag "devops-test:${{needs.build-image.outputs.image_tag_ts}}" "rminol/devops-test:latest"
           docker push "rminol/devops-test:${{needs.build-image.outputs.image_tag_ts}}"
           docker push "rminol/devops-test:latest"
+
+  deploy-helm-chart:
+    needs:
+      - docker-deploy
+      - build-image
+    runs-on: self-hosted
+    steps:
+      - name: Install kubectl of not exist
+        run: |
+          if ! command -v kubectl >/dev/null 2>&1; then
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            chmod +x kubectl
+            mv kubectl ~/.local/bin
+            chmod +x ~/.local/bin/kubectl
+          fi
+
+      - name: Install helm if not exist
+        run: |
+          if ! command -v helm >/dev/null 2>&1; then
+            wget -c 'https://get.helm.sh/helm-v4.0.2-linux-amd64.tar.gz'
+            tar -xf helm-v4.0.2-linux-amd64.tar.gz
+            mv -v ./linux-amd64/helm ~/.local/bin
+            rm -rf helm-v4.0.2-linux-amd64.tar.gz linux-amd64
+          fi
+
+      - name: Prepare kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > ~/.kube/devops-test
+          echo "KUBECONFIG=$HOME/.kube/devops-test" >> $GITHUB_ENV
+
+      - name: Deploy Helm chart
+        run: |
+          helm upgrade --install devops-test ./helm -n devops-test --create-namespace \
+            --set mySQLDatabase.host='${{ secrets.MYSQL_HOST }}' \
+            --set mySQLDatabase.port=3306 \
+            --set mySQLDatabase.user='${{ secrets.MYSQL_USER }}' \
+            --set mySQLDatabase.password='${{ secrets.MYSQL_PASSWORD }}' \
+            --set mySQLDatabase.db='${{ secrets.MYSQL_DATABASE }}' \
+            --set image.repository='rminol/devops-test' \
+            --set image.pullPolicy='IfNotPresent' \
+            --set image.tag='${{ needs.build-image.outputs.image_tag_ts }}'
