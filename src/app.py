@@ -101,6 +101,10 @@ def health():
 @metrics.do_not_track()
 @app.route('/ready')
 def ready():
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT 1;")
+    myresult = mycursor.fetchone()
+    print(f"DB connectivity: {myresult}")
     return 'Im ready to work!'
 
 
